@@ -1,0 +1,26 @@
+import 'package:flutter/material.dart';
+
+class Result extends StatelessWidget {
+  final int totalScore;
+  final Function resetQuiz;
+
+  Result(this.totalScore, this.resetQuiz);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+        child: Column(
+      children: <Widget>[
+        Text(
+          "Your score: " + totalScore.toString(),
+          style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+        ),
+        ElevatedButton(
+            onPressed: () {
+              resetQuiz();
+            },
+            child: Text("Restart Quiz")),
+      ],
+    ));
+  }
+}
