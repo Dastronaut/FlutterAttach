@@ -10,6 +10,8 @@ class Result extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
         child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Text(
           "Your score: " + totalScore.toString(),
