@@ -1,8 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:s_camera/pages/splash_screen.dart';
 
-void main() {
+Future<void> main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -18,9 +21,9 @@ class MyApp extends StatelessWidget {
       title: 'Technology CCTV Camera',
       theme: ThemeData(
         primaryColor: _primaryColor,
-        accentColor: _accentColor,
         scaffoldBackgroundColor: Colors.grey.shade100,
-        primarySwatch: Colors.grey,
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.grey)
+            .copyWith(secondary: _accentColor),
       ),
       home: const SplashScreen(),
     );

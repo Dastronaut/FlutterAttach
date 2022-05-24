@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "504270266503",
+    "firebase_url": "https://technologycamera-57511-default-rtdb.firebaseio.com",
+    "project_id": "technologycamera-57511",
+    "storage_bucket": "technologycamera-57511.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:504270266503:android:2a7ff6a93ebe8085535822",
+        "android_client_info": {
+          "package_name": "com.example.s_camera"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "504270266503-n5ahqmau0e6varkl9cpatgeujtbbbcaj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.s_camera",
+            "certificate_hash": "0bd3f3b8cf529ba5ca7ff5b9bcc768f46577a9c3"
+          }
+        },
+        {
+          "client_id": "504270266503-15g458gfs8v73pdo83o9m1g8gpnd9akc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2VH9i8UU9MnWdPR7NgL_EW2Yk_394zog"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "504270266503-15g458gfs8v73pdo83o9m1g8gpnd9akc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "504270266503-m7fikel2br66qgl0tkmli3fokuf0700l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sCamera"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

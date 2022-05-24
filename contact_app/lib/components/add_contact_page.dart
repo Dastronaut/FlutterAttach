@@ -28,9 +28,7 @@ class _AddContactPageState extends State<AddContactPage> {
                 width: double.infinity,
                 color: Colors.blue,
                 child: IconButton(
-                  onPressed: () {
-                    print("OK");
-                  },
+                  onPressed: () {},
                   icon: const Icon(
                     Icons.person,
                     size: 120,

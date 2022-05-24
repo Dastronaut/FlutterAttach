@@ -1,6 +1,7 @@
 # s_camera
 
-A new Flutter project.
+# Flutter Login and Registration UI Tutorial
+- https://www.youtube.com/watch?v=qLRdQTCFqeU&ab_channel=FlutterTutorialNet
 
 ## Getting Started
 

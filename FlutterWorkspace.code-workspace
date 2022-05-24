@@ -1,0 +1,48 @@
+{
+	"folders": [
+		{
+			"name": "try_apis",
+			"path": "try_apis"
+		},
+		{
+			"name": "s_camera",
+			"path": "s_camera"
+		},
+		{
+			"name": "flutter_login_ui",
+			"path": "flutter_login_ui"
+		},
+		{
+			"name": "calculator_app",
+			"path": "calculator_app"
+		},
+		{
+			"name": "test_thi_gk",
+			"path": "test_thi_gk"
+		},
+		{
+			"name": "doggies_api",
+			"path": "doggies_api"
+		},
+		{
+			"name": "contact_app",
+			"path": "contact_app"
+		},
+		{
+			"path": "my_portfolio"
+		},
+		{
+			"path": "jetbizcard"
+		},
+		{
+			"path": "test_firestore"
+		},
+		{
+			"path": "jet_pack"
+		},
+		{
+			"path": "jetpack_composer"
+		}
+	],
+	"settings": {}
+}

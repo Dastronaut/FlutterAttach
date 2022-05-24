@@ -6,6 +6,8 @@ import 'package:s_camera/pages/home_page.dart';
 import 'package:s_camera/widgets/header_widget.dart';
 
 class RegistrationPage extends StatefulWidget {
+  const RegistrationPage({Key? key}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return _RegistrationPageState();
@@ -24,10 +26,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
       body: SingleChildScrollView(
         child: Stack(
           children: [
-            Container(
+            const SizedBox(
               height: 150,
-              child: const HeaderWidget(
-                  150, false, Icons.person_add_alt_1_rounded),
+              child: HeaderWidget(150, false, Icons.person_add_alt_1_rounded),
             ),
             Container(
               margin: const EdgeInsets.fromLTRB(25, 50, 25, 10),
@@ -102,7 +103,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                 "E-mail address", "Enter your email"),
                             keyboardType: TextInputType.emailAddress,
                             validator: (val) {
-                              if (!(val!.isEmpty) &&
+                              if ((val!.isEmpty) &&
                                   !RegExp(r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$")
                                       .hasMatch(val)) {
                                 return "Enter a valid email address";
@@ -119,7 +120,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                 "Mobile Number", "Enter your mobile number"),
                             keyboardType: TextInputType.phone,
                             validator: (val) {
-                              if (!(val!.isEmpty) &&
+                              if ((val!.isEmpty) &&
                                   !RegExp(r"^(\d+)*$").hasMatch(val)) {
                                 return "Enter a valid phone number";
                               }
