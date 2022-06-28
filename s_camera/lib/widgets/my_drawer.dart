@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:s_camera/widgets/drawer_ListTile.dart';
+import 'package:s_camera/pages/login_page.dart';
 
 class MyDrawer extends StatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -38,20 +38,38 @@ class _MyDrawerState extends State<MyDrawer> {
                 ),
               ),
             ),
-            const DrawerListTile(
-                icon: Icon(Icons.person_outline), title: 'Hồ sơ của tôi'),
-            const DrawerListTile(
-                icon: Icon(Icons.photo_library_outlined),
-                title: 'Album của tôi'),
-            const DrawerListTile(
-                icon: Icon(Icons.settings_outlined), title: 'Cài đặt chung'),
-            const DrawerListTile(
-                icon: Icon(Icons.people_outline), title: 'Gia đình & khách'),
-            const DrawerListTile(
-                icon: Icon(Icons.layers_outlined),
-                title: 'Tích hợp thông minh'),
-            const DrawerListTile(
-                icon: Icon(Icons.info_outline), title: 'Thông tin thêm'),
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              onTap: () {},
+              title: const Text('Hồ sơ của tôi'),
+              trailing: const Icon(Icons.arrow_forward_ios_outlined),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              onTap: () {},
+              title: const Text('Cài đặt chung'),
+              trailing: const Icon(Icons.arrow_forward_ios_outlined),
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_outline),
+              onTap: () {},
+              title: const Text('Gia đình & khách'),
+              trailing: const Icon(Icons.arrow_forward_ios_outlined),
+            ),
+            ListTile(
+              leading: const Icon(Icons.layers_outlined),
+              onTap: () {},
+              title: const Text('Tích hợp thông minh'),
+              trailing: const Icon(Icons.arrow_forward_ios_outlined),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()));
+              },
+              title: const Text('Đăng xuất'),
+              trailing: const Icon(Icons.arrow_forward_ios_outlined),
+            ),
           ],
         ),
       ),

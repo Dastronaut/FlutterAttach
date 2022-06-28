@@ -2,10 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:s_camera/pages/home_page.dart';
-import 'package:s_camera/pages/registration_page.dart';
+import 'package:s_camera/utils/models/user.dart' as prefix;
 
 import '../common/theme_helper.dart';
 import '../widgets/header_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum Status { Waiting, Error }
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -17,8 +20,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final double _headerHeight = 250;
   final Key _formKey = GlobalKey<FormState>();
-
-  TextEditingController phoneController = TextEditingController();
+  var _status = Status.Waiting;
+  TextEditingController phoneController = TextEditingController(text: '');
   TextEditingController otpController = TextEditingController();
 
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -26,6 +29,8 @@ class _LoginPageState extends State<LoginPage> {
   String verificationIDReceived = "";
 
   bool otpCodeVisible = false;
+  bool emptyNumber = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,22 +77,64 @@ class _LoginPageState extends State<LoginPage> {
                               const SizedBox(
                                 height: 30.0,
                               ),
-                              Container(
-                                child: Visibility(
-                                  visible: otpCodeVisible,
-                                  child: TextField(
-                                    controller: otpController,
+                              Column(
+                                children: [
+                                  Container(
+                                    child: Visibility(
+                                      visible: otpCodeVisible,
+                                      child: TextField(
+                                        controller: otpController,
+                                        decoration: ThemeHelper()
+                                            .textInputDecoration(
+                                                'Code', 'Enter your code'),
+                                        keyboardType: TextInputType.phone,
+                                      ),
+                                    ),
                                     decoration: ThemeHelper()
-                                        .textInputDecoration(
-                                            'Code', 'Enter your code'),
+                                        .inputBoxDecorationShaddow(),
                                   ),
-                                ),
-                                decoration:
-                                    ThemeHelper().inputBoxDecorationShaddow(),
+                                  const SizedBox(
+                                    height: 30.0,
+                                  ),
+                                  Visibility(
+                                    visible: emptyNumber,
+                                    child: const Padding(
+                                      padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                      child: Text(
+                                        'Phone number can\'t be empty',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ),
+                                  Visibility(
+                                    visible: otpCodeVisible,
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          0, 0, 0, 10),
+                                      child: Text.rich(TextSpan(children: [
+                                        const TextSpan(
+                                            text: "Don't receive code? "),
+                                        TextSpan(
+                                          text: 'ResendCode',
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              setState(() {
+                                                _status = Status.Waiting;
+                                              });
+                                              verifyNumber();
+                                            },
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary),
+                                        ),
+                                      ])),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(
-                                height: 30.0,
-                              ),
+
                               Container(
                                 decoration:
                                     ThemeHelper().buttonBoxDecoration(context),
@@ -106,46 +153,45 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   ),
                                   onPressed: () {
-                                    if (otpCodeVisible) {
+                                    if (phoneController.text == '') {
+                                      setState(() {
+                                        emptyNumber = true;
+                                      });
+                                    } else if (otpCodeVisible) {
                                       verifyCode();
                                     } else {
                                       verifyNumber();
                                     }
-
-                                    //After successful login we will redirect to profile page. Let's create profile page now
                                     // Navigator.pushReplacement(
-                                    //     context,
-                                    //     MaterialPageRoute(
-                                    //         builder: (context) =>
-                                    //             const MyHomePage()));
+                                    //     context, MaterialPageRoute(builder: (context) => const MyHomePage()));
                                   },
                                 ),
                               ),
-                              Container(
-                                margin:
-                                    const EdgeInsets.fromLTRB(10, 20, 10, 20),
-                                //child: Text('Don\'t have an account? Create'),
-                                child: Text.rich(TextSpan(children: [
-                                  const TextSpan(
-                                      text: "Don\'t have an account? "),
-                                  TextSpan(
-                                    text: 'Create',
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    RegistrationPage()));
-                                      },
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondary),
-                                  ),
-                                ])),
-                              ),
+                              // Container(
+                              //   margin:
+                              //       const EdgeInsets.fromLTRB(10, 20, 10, 20),
+                              //   //child: Text('Don\'t have an account? Create'),
+                              //   child: Text.rich(TextSpan(children: [
+                              //     const TextSpan(
+                              //         text: "Don't have an account? "),
+                              //     TextSpan(
+                              //       text: 'Create',
+                              //       recognizer: TapGestureRecognizer()
+                              //         ..onTap = () {
+                              //           Navigator.push(
+                              //               context,
+                              //               MaterialPageRoute(
+                              //                   builder: (context) =>
+                              //                       const RegistrationPage()));
+                              //         },
+                              //       style: TextStyle(
+                              //           fontWeight: FontWeight.bold,
+                              //           color: Theme.of(context)
+                              //               .colorScheme
+                              //               .secondary),
+                              //     ),
+                              //   ])),
+                              // ),
                             ],
                           )),
                     ],
@@ -179,8 +225,31 @@ class _LoginPageState extends State<LoginPage> {
   void verifyCode() async {
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: verificationIDReceived, smsCode: otpController.text);
+    bool _isPatron = false;
+    await FirebaseFirestore.instance
+        .collection('control')
+        .get()
+        .then((value) => {
+              if (value == phoneController.text) {_isPatron = true}
+            });
+    if (_isPatron == false) {
+      final docUser = FirebaseFirestore.instance
+          .collection('control')
+          .doc(phoneController.text);
+      final user = prefix.User(buzzer: false, light: false, safety: false);
+      final json = user.toJson();
+      await docUser.set(json);
+    }
+
     await auth.signInWithCredential(credential).then((value) {
-      const MyHomePage();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MyHomePage(
+            phoneNumber: phoneController.text,
+          ),
+        ),
+      );
     });
   }
 }

@@ -6,22 +6,43 @@ import 'device_page.dart';
 import 'library_page.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  final String phoneNumber;
+  const MyHomePage({Key? key, required this.phoneNumber}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  static String _phoneNumber = '';
+
   int _selectedIndex = 0;
-  final _widgetOptions = [
-    const DevicePage(),
-    const LibraryPage(),
-  ];
+
   void _onItemTap(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneNumber = widget.phoneNumber;
+  }
+
+  Widget getPage(int index) {
+    switch (index) {
+      case 0:
+        return DevicePage(
+          phoneNumber: _phoneNumber,
+        );
+      case 1:
+        return const LibraryPage();
+      default:
+        return DevicePage(
+          phoneNumber: _phoneNumber,
+        );
+    }
   }
 
   @override
@@ -56,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       drawer: const MyDrawer(),
-      body: _widgetOptions[_selectedIndex],
+      body: getPage(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.pink,
         items: [

@@ -42,6 +42,15 @@
 		},
 		{
 			"path": "jetpack_composer"
+		},
+		{
+			"path": "weather_forecast"
+		},
+		{
+			"path": "flutter_location_example"
+		},
+		{
+			"path": "location_example"
 		}
 	],
 	"settings": {}

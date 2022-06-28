@@ -10,6 +10,17 @@ class CameraPage extends StatefulWidget {
 class _CameraPageState extends State<CameraPage> {
   final controller = ScrollController();
   int currentTab = 0;
+  List<Widget> widgetOptions = [
+    const Text("Chup man hinh"),
+    const Text("Am luong"),
+    const Text("Tam dung"),
+    const Text("Ghi"),
+  ];
+  void _onItemtap(int index){
+    setState(() {
+      currentTab = index;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,10 +50,7 @@ class _CameraPageState extends State<CameraPage> {
         ),
       ),
 
-      body: Container(
-        constraints: const BoxConstraints.expand(),
-        color: Colors.white,
-      ),
+      body: widgetOptions[currentTab],
 
       // floatingActionButton: FloatingActionButton(
       //   onPressed: () {},
@@ -73,6 +81,8 @@ class _CameraPageState extends State<CameraPage> {
         ],
         selectedItemColor: Colors.white,
         selectedLabelStyle: const TextStyle(fontSize: 15),
+        currentIndex: currentTab,
+        onTap: _onItemtap,
       ),
     );
   }

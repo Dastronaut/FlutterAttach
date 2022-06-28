@@ -2,28 +2,47 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:s_camera/utils/models/user.dart';
 
 class DevicePage extends StatefulWidget {
-  const DevicePage({Key? key}) : super(key: key);
+  final String phoneNumber;
+  const DevicePage({Key? key, required this.phoneNumber}) : super(key: key);
 
   @override
   State<DevicePage> createState() => _DevicePageState();
 }
 
 class _DevicePageState extends State<DevicePage> {
-  final CollectionReference _mode =
+  final CollectionReference docUser =
       FirebaseFirestore.instance.collection('control');
+  bool _safety = false;
+  bool _buzzer = false;
+  bool _lights = false;
+
+  Future<User?> readUser() async {
+    print(widget.phoneNumber);
+    final docUser = FirebaseFirestore.instance
+        .collection('control')
+        .doc(widget.phoneNumber);
+    final snapshot = await docUser.get();
+
+    if (snapshot.exists) {
+      return User.fromJson(snapshot.data()!);
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
-        stream: _mode.snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-          if (streamSnapshot.hasData & streamSnapshot.data!.docs.isNotEmpty) {
-            final DocumentSnapshot documentSnapshot =
-                streamSnapshot.data!.docs[0];
-            bool _buzzer = documentSnapshot['buzzer'];
-            bool _lights = documentSnapshot['light'];
+      body: FutureBuilder<User?>(
+        future: readUser(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final user = snapshot.data;
+            _buzzer = user!.buzzer;
+            _lights = user.light;
+            _safety = user.safety;
             return Container(
               constraints: const BoxConstraints.expand(),
               color: Colors.white,
@@ -65,14 +84,33 @@ class _DevicePageState extends State<DevicePage> {
                           ],
                         ),
                         SwitchListTile(
-                          title: const Text('Alert'),
+                          title: const Text('Chế độ an toàn'),
+                          value: _safety,
+                          onChanged: (bool value) async {
+                            setState(() {
+                              _safety = value;
+                            });
+                            await docUser
+                                .doc(widget.phoneNumber)
+                                .update({"safety": value})
+                                .then((_) => log('Success'))
+                                .catchError((error) => log('Failed: $error'));
+                          },
+                          secondary: Icon(Icons.health_and_safety_outlined,
+                              color: _safety ? Colors.green : Colors.grey),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        SwitchListTile(
+                          title: const Text('Chuông'),
                           value: _buzzer,
                           onChanged: (bool value) async {
                             setState(() {
                               _buzzer = value;
                             });
-                            await _mode
-                                .doc(documentSnapshot.id)
+                            await docUser
+                                .doc(widget.phoneNumber)
                                 .update({"buzzer": value})
                                 .then((_) => log('Success'))
                                 .catchError((error) => log('Failed: $error'));
@@ -84,14 +122,14 @@ class _DevicePageState extends State<DevicePage> {
                           height: 8,
                         ),
                         SwitchListTile(
-                          title: const Text('Lights'),
+                          title: const Text('Đèn'),
                           value: _lights,
                           onChanged: (bool value) async {
                             setState(() {
                               _lights = value;
                             });
-                            await _mode
-                                .doc(documentSnapshot.id)
+                            await docUser
+                                .doc(widget.phoneNumber)
                                 .update({"light": value})
                                 .then((_) => log('Success'))
                                 .catchError((error) => log('Failed: $error'));
@@ -107,7 +145,6 @@ class _DevicePageState extends State<DevicePage> {
               ),
             );
           }
-
           return const Center(
             child: CircularProgressIndicator(),
           );
