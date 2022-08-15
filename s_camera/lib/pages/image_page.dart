@@ -17,12 +17,9 @@ class ImagePage extends StatelessWidget {
                 file.ref.delete();
                 Navigator.pop(context);
               },
-              icon: Icon(Icons.delete)
-          )
-
+              icon: const Icon(Icons.delete))
         ],
       ),
-
       body: Image.network(
         file.url,
         height: double.infinity,
@@ -30,5 +27,4 @@ class ImagePage extends StatelessWidget {
       ),
     );
   }
-
 }

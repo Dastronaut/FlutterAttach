@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:s_camera/pages/image_page.dart';
 import 'package:s_camera/utils/firebase_api.dart';
@@ -58,38 +57,37 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   Widget buildFile(BuildContext context, FirebaseFile file) => ListTile(
-        contentPadding: const EdgeInsets.all(2.0),
-        leading: Image.network(
-          file.url,
-          width: 100,
-          height: 100,
-          fit: BoxFit.cover,
+      contentPadding: const EdgeInsets.all(2.0),
+      leading: Image.network(
+        file.url,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      ),
+      title: Text(
+        file.name,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          decoration: TextDecoration.underline,
+          color: Colors.blue,
         ),
-        title: Text(
-          file.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            decoration: TextDecoration.underline,
-            color: Colors.blue,
-          ),
-        ),
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+      ),
+      onTap: () async {
+        await Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => ImagePage(file: file),
-        )),
-        onLongPress: () async{
-          await Delete(file);
-          //file.ref.delete();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Image deleted Successfully")));
-
-        }
-
-  );
-  Future<void> Delete(FirebaseFile file)async{
-    await file.ref.delete();
-    setState(() {
-
-    });
+        ));
+        setState(() {});
+      },
+      onLongPress: () async {
+        await file.ref.delete();
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Image deleted Successfully")));
+        setState(() {});
+      });
+  Future<void> Delete(FirebaseFile file) async {
+    setState(() {});
   }
+
   Widget buildHeader(int length) => ListTile(
         tileColor: Colors.white,
         leading: const SizedBox(

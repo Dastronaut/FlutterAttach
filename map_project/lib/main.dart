@@ -5,7 +5,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:map_project/location_model.dart';
 
 Future main() async {
@@ -36,7 +35,6 @@ class MapSample extends StatefulWidget {
 
 class MapSampleState extends State<MapSample> {
   Position? _currentPosition;
-  Location? _targetPosition;
   final DatabaseReference positionRef =
       FirebaseDatabase.instance.ref('position');
 
@@ -78,7 +76,7 @@ class MapSampleState extends State<MapSample> {
 
   final Completer<GoogleMapController> _controller = Completer();
 
-  static const CameraPosition _kGooglePlex = CameraPosition(
+  static const CameraPosition _initialView = CameraPosition(
     target: LatLng(16.049640, 108.202757),
     zoom: 11.1,
   );
@@ -117,7 +115,7 @@ class MapSampleState extends State<MapSample> {
                   position: LatLng(_targetPosition.lat, _targetPosition.lon),
                 )
               },
-              initialCameraPosition: _kGooglePlex,
+              initialCameraPosition: _initialView,
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
               },

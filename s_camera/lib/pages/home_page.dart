@@ -36,8 +36,10 @@ class _MyHomePageState extends State<MyHomePage> {
         return DevicePage(
           phoneNumber: _phoneNumber,
         );
+
       case 1:
         return const LibraryPage();
+
       default:
         return DevicePage(
           phoneNumber: _phoneNumber,

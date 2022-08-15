@@ -134,7 +134,6 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ],
                               ),
-
                               Container(
                                 decoration:
                                     ThemeHelper().buttonBoxDecoration(context),
@@ -167,31 +166,6 @@ class _LoginPageState extends State<LoginPage> {
                                   },
                                 ),
                               ),
-                              // Container(
-                              //   margin:
-                              //       const EdgeInsets.fromLTRB(10, 20, 10, 20),
-                              //   //child: Text('Don\'t have an account? Create'),
-                              //   child: Text.rich(TextSpan(children: [
-                              //     const TextSpan(
-                              //         text: "Don't have an account? "),
-                              //     TextSpan(
-                              //       text: 'Create',
-                              //       recognizer: TapGestureRecognizer()
-                              //         ..onTap = () {
-                              //           Navigator.push(
-                              //               context,
-                              //               MaterialPageRoute(
-                              //                   builder: (context) =>
-                              //                       const RegistrationPage()));
-                              //         },
-                              //       style: TextStyle(
-                              //           fontWeight: FontWeight.bold,
-                              //           color: Theme.of(context)
-                              //               .colorScheme
-                              //               .secondary),
-                              //     ),
-                              //   ])),
-                              // ),
                             ],
                           )),
                     ],
@@ -236,7 +210,7 @@ class _LoginPageState extends State<LoginPage> {
       final docUser = FirebaseFirestore.instance
           .collection('control')
           .doc(phoneController.text);
-      final user = prefix.User(buzzer: false, light: false, safety: false);
+      final user = prefix.User(buzzer: false, light: false);
       final json = user.toJson();
       await docUser.set(json);
     }
