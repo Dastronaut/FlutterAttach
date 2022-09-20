@@ -26,6 +26,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.grey)
             .copyWith(secondary: _accentColor),
       ),
+      debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
     );
   }

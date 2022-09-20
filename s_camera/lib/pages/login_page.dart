@@ -152,17 +152,22 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   ),
                                   onPressed: () {
-                                    if (phoneController.text == '') {
-                                      setState(() {
-                                        emptyNumber = true;
-                                      });
-                                    } else if (otpCodeVisible) {
-                                      verifyCode();
-                                    } else {
-                                      verifyNumber();
-                                    }
-                                    // Navigator.pushReplacement(
-                                    //     context, MaterialPageRoute(builder: (context) => const MyHomePage()));
+                                    // if (phoneController.text == '') {
+                                    //   setState(() {
+                                    //     emptyNumber = true;
+                                    //   });
+                                    // } else if (otpCodeVisible) {
+                                    //   verifyCode();
+                                    // } else {
+                                    //   verifyNumber();
+                                    // }
+                                    Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const MyHomePage(
+                                                  phoneNumber: '',
+                                                )));
                                   },
                                 ),
                               ),

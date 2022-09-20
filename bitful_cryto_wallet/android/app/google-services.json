@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "326857552127",
+    "project_id": "bitful-8d226",
+    "storage_bucket": "bitful-8d226.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326857552127:android:a5416f7b709005ed279cca",
+        "android_client_info": {
+          "package_name": "com.example.bitful_cryto_wallet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "326857552127-hhivu7fqvcd3p1oi72ud0bgavbdi3rjn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bitful_cryto_wallet",
+            "certificate_hash": "3a0a735ab1a3121fc62107415fa00426304bbf14"
+          }
+        },
+        {
+          "client_id": "326857552127-avg24jm35g1cqa0ttkr7mh8pg1t6vd6t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABGD07B61gb5zY9CsI7uFV2EnrZLSkYQI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "326857552127-avg24jm35g1cqa0ttkr7mh8pg1t6vd6t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

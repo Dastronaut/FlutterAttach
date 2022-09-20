@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -43,7 +41,7 @@ class _DevicePageState extends State<DevicePage> {
                             const Text(
                               "Camera",
                               style:
-                                  TextStyle(color: Colors.black, fontSize: 40),
+                                  TextStyle(color: Colors.black, fontSize: 34),
                             ),
                             const Padding(
                               padding: EdgeInsets.fromLTRB(121, 0, 0, 0),
