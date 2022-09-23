@@ -2,9 +2,10 @@ import 'dart:io';
 import 'package:firebase_notification_example/constants/firestore_constant.dart';
 import 'package:firebase_notification_example/constants/text_field_constants.dart';
 import 'package:firebase_notification_example/models/chat_messages.dart';
+import 'package:firebase_notification_example/models/group_profile.dart';
+import 'package:firebase_notification_example/pages/home_page.dart';
 import 'package:firebase_notification_example/providers/auth_provider.dart';
 import 'package:firebase_notification_example/providers/group_chat_provider.dart';
-import 'package:firebase_notification_example/providers/profile_provider.dart';
 import 'package:firebase_notification_example/widgets/common_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -13,23 +14,18 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class GroupChatPage extends StatefulWidget {
   final String currentUserId;
-  final List<String> members;
-  final String groupChatId;
-  final String groupChatName;
   final bool isCreate;
+  final GroupData groupData;
 
-  const GroupChatPage(
-      {Key? key,
-      required this.currentUserId,
-      required this.members,
-      required this.groupChatName,
-      required this.isCreate,
-      required this.groupChatId})
-      : super(key: key);
+  const GroupChatPage({
+    Key? key,
+    required this.isCreate,
+    required this.groupData,
+    required this.currentUserId,
+  }) : super(key: key);
 
   @override
   State<GroupChatPage> createState() => _GroupChatPageState();
@@ -85,7 +81,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     groupChatProvider.updateFirestoreData(
         FirestoreConstants.pathUserCollection,
         widget.currentUserId,
-        {FirestoreConstants.chattingWith: widget.groupChatId});
+        {FirestoreConstants.chattingWith: widget.groupData.groupId});
   }
 
   Future getImage() async {
@@ -124,14 +120,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     return Future.value(false);
   }
 
-  void _callPhoneNumber(String phoneNumber) async {
-    String url = 'tel://$phoneNumber';
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      throw 'Error Occurred';
-    }
-  }
+  void _leaveGroup(String userId) async {}
 
   void uploadImageFile() async {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -156,7 +145,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     if (content.trim().isNotEmpty) {
       textEditingController.clear();
       groupChatProvider.sendChatMessage(
-          content, type, widget.groupChatId, widget.currentUserId);
+          content, type, widget.groupData.groupId, widget.currentUserId);
       scrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
@@ -194,20 +183,18 @@ class _GroupChatPageState extends State<GroupChatPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(widget.groupChatName.isNotEmpty
-            ? widget.groupChatName
+        title: Text(widget.groupData.groupName.isNotEmpty
+            ? widget.groupData.groupName
             : 'Group chat'),
         actions: [
           IconButton(
             onPressed: () {
-              ProfileProvider profileProvider;
-              profileProvider = context.read<ProfileProvider>();
-              String callPhoneNumber =
-                  profileProvider.getPrefs(FirestoreConstants.phoneNumber) ??
-                      "";
-              _callPhoneNumber(callPhoneNumber);
+              groupChatProvider.leaveGroup(
+                  widget.groupData, widget.currentUserId);
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => const HomePage()));
             },
-            icon: const Icon(Icons.phone),
+            icon: const Icon(Icons.output),
           ),
         ],
       ),
@@ -403,40 +390,33 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   Widget buildListMessage() {
     return Flexible(
-      child: widget.groupChatId.isNotEmpty
-          ? StreamBuilder<QuerySnapshot>(
-              stream:
-                  groupChatProvider.getChatMessage(widget.groupChatId, _limit),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasData) {
-                  listMessages = snapshot.data!.docs;
-                  if (listMessages.isNotEmpty) {
-                    return ListView.builder(
-                        padding: const EdgeInsets.all(10),
-                        itemCount: snapshot.data?.docs.length,
-                        reverse: true,
-                        controller: scrollController,
-                        itemBuilder: (context, index) =>
-                            buildItem(index, snapshot.data?.docs[index]));
-                  } else {
-                    return const Center(
-                      child: Text('No messages...'),
-                    );
-                  }
+        child: StreamBuilder<QuerySnapshot>(
+            stream: groupChatProvider.getChatMessage(
+                widget.groupData.groupId, _limit),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasData) {
+                listMessages = snapshot.data!.docs;
+                if (listMessages.isNotEmpty) {
+                  return ListView.builder(
+                      padding: const EdgeInsets.all(10),
+                      itemCount: snapshot.data?.docs.length,
+                      reverse: true,
+                      controller: scrollController,
+                      itemBuilder: (context, index) =>
+                          buildItem(index, snapshot.data?.docs[index]));
                 } else {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.blue,
-                    ),
+                    child: Text('No messages...'),
                   );
                 }
-              })
-          : const Center(
-              child: CircularProgressIndicator(
-                color: Colors.blue,
-              ),
-            ),
-    );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.blue,
+                  ),
+                );
+              }
+            }));
   }
 }

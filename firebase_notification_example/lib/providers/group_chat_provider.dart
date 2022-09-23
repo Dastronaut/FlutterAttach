@@ -82,6 +82,27 @@ class GroupChatProvider {
       "createdAt: ": DateTime.now().millisecondsSinceEpoch.toString(),
     });
   }
+
+  void deleteGroup(GroupData groupData) {}
+
+  void leaveGroup(GroupData groupData, String userId) {
+    if (userId == groupData.adminId) {
+      firebaseFirestore
+          .collection(FirestoreConstants.pathGroupCollection)
+          .doc(groupData.groupId)
+          .delete();
+    } else {
+      final List<String> members =
+          groupData.members.map((e) => e.toString()).toList();
+      members.remove(userId);
+      GroupData newGroupData = groupData.copyWith(members: members);
+
+      firebaseFirestore
+          .collection(FirestoreConstants.pathGroupCollection)
+          .doc(groupData.groupId)
+          .update(newGroupData.toJson());
+    }
+  }
 }
 
 class MessageType {

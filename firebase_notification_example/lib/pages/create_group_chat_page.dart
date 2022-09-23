@@ -191,11 +191,9 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => GroupChatPage(
-                                  currentUserId: widget.currentUserId,
-                                  members: members,
-                                  groupChatName: displayGrName,
                                   isCreate: true,
-                                  groupChatId: groupChatId,
+                                  groupData: groupData,
+                                  currentUserId: widget.currentUserId,
                                 )));
                   },
                   child: const Padding(

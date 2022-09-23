@@ -417,66 +417,69 @@ class _HomePageState extends State<HomePage> {
   Widget _buildGroupChatItem(
       BuildContext context, DocumentSnapshot? documentSnapshot) {
     if (documentSnapshot != null) {
-      GroupData groupChat = GroupData.fromDocument(documentSnapshot);
-      return TextButton(
-        onPressed: () {
-          if (KeyboardUtils.isKeyboardShowing()) {
-            KeyboardUtils.closeKeyboard(context);
-          }
-          final List<String> strs =
-              groupChat.members.map((e) => e.toString()).toList();
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => GroupChatPage(
-                        currentUserId: currentUserId,
-                        members: strs,
-                        groupChatName: groupChat.groupName,
-                        isCreate: false,
-                        groupChatId: groupChat.groupId,
-                      )));
-        },
-        child: ListTile(
-          leading: groupChat.photoUrl.isNotEmpty
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: Image.network(
-                    groupChat.photoUrl,
-                    fit: BoxFit.cover,
-                    width: 50,
-                    height: 50,
-                    loadingBuilder: (BuildContext ctx, Widget child,
-                        ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      } else {
-                        return SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: CircularProgressIndicator(
-                              color: Colors.grey,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null),
-                        );
-                      }
-                    },
-                    errorBuilder: (context, object, stackTrace) {
-                      return const Icon(Icons.account_circle, size: 50);
-                    },
+      final GroupData groupChat = GroupData.fromDocument(documentSnapshot);
+      final List<String> members =
+          groupChat.members.map((e) => e.toString()).toList();
+      if (members.contains(currentUserId)) {
+        return TextButton(
+          onPressed: () {
+            if (KeyboardUtils.isKeyboardShowing()) {
+              KeyboardUtils.closeKeyboard(context);
+            }
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => GroupChatPage(
+                          isCreate: false,
+                          groupData: groupChat,
+                          currentUserId: currentUserId,
+                        )));
+          },
+          child: ListTile(
+            leading: groupChat.photoUrl.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(
+                      groupChat.photoUrl,
+                      fit: BoxFit.cover,
+                      width: 50,
+                      height: 50,
+                      loadingBuilder: (BuildContext ctx, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        } else {
+                          return SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: CircularProgressIndicator(
+                                color: Colors.grey,
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null),
+                          );
+                        }
+                      },
+                      errorBuilder: (context, object, stackTrace) {
+                        return const Icon(Icons.account_circle, size: 50);
+                      },
+                    ),
+                  )
+                : const Icon(
+                    Icons.account_circle,
+                    size: 50,
                   ),
-                )
-              : const Icon(
-                  Icons.account_circle,
-                  size: 50,
-                ),
-          title: Text(
-            groupChat.groupName,
-            style: const TextStyle(color: Colors.black),
+            title: Text(
+              groupChat.groupName,
+              style: const TextStyle(color: Colors.black),
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        return const SizedBox.shrink();
+      }
     } else {
       return const SizedBox.shrink();
     }
