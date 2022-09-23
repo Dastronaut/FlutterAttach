@@ -7,6 +7,7 @@ import 'package:firebase_notification_example/pages/home_page.dart';
 import 'package:firebase_notification_example/providers/auth_provider.dart';
 import 'package:firebase_notification_example/providers/group_chat_provider.dart';
 import 'package:firebase_notification_example/widgets/common_widget.dart';
+import 'package:firebase_notification_example/widgets/dialog_content.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
@@ -58,6 +59,13 @@ class _GroupChatPageState extends State<GroupChatPage> {
     focusNode.addListener(onFocusChanged);
     scrollController.addListener(_scrollListener);
     readLocal();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    scrollController.dispose();
+    focusNode.dispose();
   }
 
   _scrollListener() {
@@ -119,8 +127,6 @@ class _GroupChatPageState extends State<GroupChatPage> {
     }
     return Future.value(false);
   }
-
-  void _leaveGroup(String userId) async {}
 
   void uploadImageFile() async {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -187,6 +193,26 @@ class _GroupChatPageState extends State<GroupChatPage> {
             ? widget.groupData.groupName
             : 'Group chat'),
         actions: [
+          IconButton(
+            onPressed: () {
+              showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (context) => DialogContent(
+                        currentUserId: widget.currentUserId,
+                        groupData: widget.groupData,
+                      ));
+
+              // groupChatProvider.addGroup(
+              //     widget.groupData, widget.currentUserId);
+              // Navigator.pushReplacement(context,
+              //     MaterialPageRoute(builder: (context) => const HomePage()));
+            },
+            icon: const Icon(Icons.group_add_outlined),
+          ),
           IconButton(
             onPressed: () {
               groupChatProvider.leaveGroup(

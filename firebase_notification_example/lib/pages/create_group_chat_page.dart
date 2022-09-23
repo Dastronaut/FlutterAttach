@@ -6,6 +6,7 @@ import 'package:firebase_notification_example/constants/text_field_constants.dar
 import 'package:firebase_notification_example/models/chat_user.dart';
 import 'package:firebase_notification_example/models/group_profile.dart';
 import 'package:firebase_notification_example/pages/group_chat_page.dart';
+import 'package:firebase_notification_example/pages/home_page.dart';
 import 'package:firebase_notification_example/providers/auth_provider.dart';
 import 'package:firebase_notification_example/providers/group_chat_provider.dart';
 import 'package:firebase_notification_example/utilities/keyboard_utils.dart';
@@ -82,6 +83,11 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const HomePage())),
+        ),
         centerTitle: true,
         title: const Text("Create group chat"),
       ),

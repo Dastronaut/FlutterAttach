@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_notification_example/constants/firestore_constant.dart';
 import 'package:firebase_notification_example/models/chat_messages.dart';
 import 'package:firebase_notification_example/models/group_profile.dart';
+import 'package:firebase_notification_example/widgets/app_toast.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,7 +33,6 @@ class GroupChatProvider {
   }
 
   Stream<QuerySnapshot> getChatMessage(String groupChatId, int limit) {
-    print('GROUP CHAT ID FROM PROVIDER: $groupChatId');
     return firebaseFirestore
         .collection(FirestoreConstants.pathMessageCollection)
         .doc(groupChatId)
@@ -83,25 +83,43 @@ class GroupChatProvider {
     });
   }
 
-  void deleteGroup(GroupData groupData) {}
-
-  void leaveGroup(GroupData groupData, String userId) {
+  Future<void> leaveGroup(GroupData groupData, String userId) async {
     if (userId == groupData.adminId) {
-      firebaseFirestore
+      print('GROUP ID: ${groupData.groupId}');
+      await firebaseFirestore
+          .collection(FirestoreConstants.pathMessageCollection)
+          .doc(groupData.groupId)
+          .delete();
+      await firebaseFirestore
           .collection(FirestoreConstants.pathGroupCollection)
           .doc(groupData.groupId)
           .delete();
+      AppToast.showSuccess('Xóa nhóm thành công');
     } else {
       final List<String> members =
           groupData.members.map((e) => e.toString()).toList();
       members.remove(userId);
       GroupData newGroupData = groupData.copyWith(members: members);
 
-      firebaseFirestore
+      await firebaseFirestore
           .collection(FirestoreConstants.pathGroupCollection)
           .doc(groupData.groupId)
           .update(newGroupData.toJson());
+      AppToast.showSuccess('Rời nhóm thành công');
     }
+  }
+
+  void addGroup(GroupData groupData, List<String> listUsers) {
+    final List<String> members =
+        groupData.members.map((e) => e.toString()).toList();
+    members.addAll(listUsers);
+    GroupData newGroupData = groupData.copyWith(members: members);
+
+    firebaseFirestore
+        .collection(FirestoreConstants.pathGroupCollection)
+        .doc(groupData.groupId)
+        .update(newGroupData.toJson());
+    AppToast.showSuccess('Thêm thành viên thành công');
   }
 }
 

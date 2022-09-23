@@ -420,7 +420,8 @@ class _HomePageState extends State<HomePage> {
       final GroupData groupChat = GroupData.fromDocument(documentSnapshot);
       final List<String> members =
           groupChat.members.map((e) => e.toString()).toList();
-      if (members.contains(currentUserId)) {
+      if (members.contains(currentUserId) ||
+          groupChat.adminId == currentUserId) {
         return TextButton(
           onPressed: () {
             if (KeyboardUtils.isKeyboardShowing()) {
