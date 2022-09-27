@@ -18,6 +18,10 @@ class GroupChatProvider {
       required this.firebaseStorage,
       required this.firebaseFirestore});
 
+  Future<bool> setPrefs(String key, String value) async {
+    return await prefs.setString(key, value);
+  }
+
   UploadTask uploadImageFile(File image, String filename) {
     Reference reference = firebaseStorage.ref().child(filename);
     UploadTask uploadTask = reference.putFile(image);
@@ -42,8 +46,8 @@ class GroupChatProvider {
         .snapshots();
   }
 
-  void sendChatMessage(
-      String content, int type, String groupChatId, String currentUserId) {
+  void sendChatMessage(String content, int type, String groupChatId,
+      String currentUserId, bool isPin) {
     DocumentReference documentReference = firebaseFirestore
         .collection(FirestoreConstants.pathMessageCollection)
         .doc(groupChatId)
@@ -54,7 +58,8 @@ class GroupChatProvider {
         idTo: groupChatId,
         timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
         content: content,
-        type: type);
+        type: type,
+        isPin: isPin);
 
     FirebaseFirestore.instance.runTransaction((transaction) async {
       transaction.set(documentReference, chatMessages.toJson());
@@ -120,6 +125,16 @@ class GroupChatProvider {
         .doc(groupData.groupId)
         .update(newGroupData.toJson());
     AppToast.showSuccess('Thêm thành viên thành công');
+  }
+
+  Future<void> updateChatMessage(
+      String groupChatId, ChatMessages chatMessages) async {
+    await firebaseFirestore
+        .collection(FirestoreConstants.pathMessageCollection)
+        .doc(groupChatId)
+        .collection(groupChatId)
+        .doc(chatMessages.timestamp)
+        .update(chatMessages.toJson());
   }
 }
 

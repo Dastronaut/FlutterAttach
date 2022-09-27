@@ -6,11 +6,11 @@ import 'package:firebase_notification_example/constants/text_field_constants.dar
 import 'package:firebase_notification_example/models/chat_user.dart';
 import 'package:firebase_notification_example/models/group_profile.dart';
 import 'package:firebase_notification_example/pages/group_chat_page.dart';
-import 'package:firebase_notification_example/pages/home_page.dart';
 import 'package:firebase_notification_example/providers/auth_provider.dart';
 import 'package:firebase_notification_example/providers/group_chat_provider.dart';
 import 'package:firebase_notification_example/utilities/keyboard_utils.dart';
 import 'package:firebase_notification_example/widgets/loading_view.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
@@ -29,6 +29,8 @@ class CreateGroupChatPage extends StatefulWidget {
 class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
   TextEditingController displayGrNameController =
       TextEditingController(text: '');
+  String id = '';
+
   final ScrollController scrollController = ScrollController();
   List<String> members = [];
   List<num> checkboxList = [];
@@ -74,8 +76,26 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
         avaGroupImageFile = image;
         isLoading = true;
       });
-      // TODO: uploadFile() method
-      // uploadFile();
+      uploadFile();
+    }
+  }
+
+  Future uploadFile() async {
+    String fileName = id;
+    UploadTask uploadTask =
+        groupChatProvider.uploadImageFile(avaGroupImageFile!, fileName);
+    try {
+      TaskSnapshot snapshot = await uploadTask;
+      photoUrl = await snapshot.ref.getDownloadURL();
+      await groupChatProvider.setPrefs(FirestoreConstants.photoUrl, photoUrl);
+      setState(() {
+        isLoading = false;
+      });
+    } on FirebaseException catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      Fluttertoast.showToast(msg: e.toString());
     }
   }
 
@@ -83,11 +103,6 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const HomePage())),
-        ),
         centerTitle: true,
         title: const Text("Create group chat"),
       ),

@@ -201,9 +201,7 @@ class _HomePageState extends State<HomePage> {
                                     const Divider(),
                           );
                         } else {
-                          return const Center(
-                            child: Text('No user found...'),
-                          );
+                          return const SizedBox.shrink();
                         }
                       } else {
                         return const Center(
@@ -235,9 +233,7 @@ class _HomePageState extends State<HomePage> {
                                     const Divider(),
                           );
                         } else {
-                          return const Center(
-                            child: Text('No user found...'),
-                          );
+                          return const SizedBox.shrink();
                         }
                       } else {
                         return const Center(

@@ -3,9 +3,11 @@ import 'package:firebase_notification_example/constants/firestore_constant.dart'
 import 'package:firebase_notification_example/constants/text_field_constants.dart';
 import 'package:firebase_notification_example/models/chat_messages.dart';
 import 'package:firebase_notification_example/models/group_profile.dart';
+import 'package:firebase_notification_example/models/pin_chat.dart';
 import 'package:firebase_notification_example/pages/home_page.dart';
 import 'package:firebase_notification_example/providers/auth_provider.dart';
 import 'package:firebase_notification_example/providers/group_chat_provider.dart';
+import 'package:firebase_notification_example/providers/profile_provider.dart';
 import 'package:firebase_notification_example/widgets/common_widget.dart';
 import 'package:firebase_notification_example/widgets/dialog_content.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -34,6 +36,8 @@ class GroupChatPage extends StatefulWidget {
 
 class _GroupChatPageState extends State<GroupChatPage> {
   List<QueryDocumentSnapshot> listMessages = [];
+  bool isPin = false;
+  PinChat? pinChat;
 
   int _limit = 20;
   final int _limitIncrement = 20;
@@ -49,12 +53,14 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   late GroupChatProvider groupChatProvider;
   late AuthProvider authProvider;
+  late ProfileProvider profileProvider;
 
   @override
   void initState() {
     super.initState();
     groupChatProvider = context.read<GroupChatProvider>();
     authProvider = context.read<AuthProvider>();
+    profileProvider = context.read<ProfileProvider>();
 
     focusNode.addListener(onFocusChanged);
     scrollController.addListener(_scrollListener);
@@ -151,7 +157,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     if (content.trim().isNotEmpty) {
       textEditingController.clear();
       groupChatProvider.sendChatMessage(
-          content, type, widget.groupData.groupId, widget.currentUserId);
+          content, type, widget.groupData.groupId, widget.currentUserId, false);
       scrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
@@ -188,6 +194,11 @@ class _GroupChatPageState extends State<GroupChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const HomePage())),
+        ),
         centerTitle: true,
         title: Text(widget.groupData.groupName.isNotEmpty
             ? widget.groupData.groupName
@@ -205,11 +216,6 @@ class _GroupChatPageState extends State<GroupChatPage> {
                         currentUserId: widget.currentUserId,
                         groupData: widget.groupData,
                       ));
-
-              // groupChatProvider.addGroup(
-              //     widget.groupData, widget.currentUserId);
-              // Navigator.pushReplacement(context,
-              //     MaterialPageRoute(builder: (context) => const HomePage()));
             },
             icon: const Icon(Icons.group_add_outlined),
           ),
@@ -229,11 +235,59 @@ class _GroupChatPageState extends State<GroupChatPage> {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             children: [
+              _buildPinMessage(),
               buildListMessage(),
               buildMessageInput(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPinMessage() {
+    return Visibility(
+      visible: isPin,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.green[700],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 5,
+              blurRadius: 7,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        width: double.infinity,
+        height: 70,
+        child: pinChat != null
+            ? Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        height: 50,
+                        child: Padding(
+                            padding: const EdgeInsets.only(left: 12, top: 12),
+                            child: Text(pinChat!.msg)),
+                      ),
+                      const Icon(Icons.push_pin_outlined),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Pinned by ${pinChat!.user}'),
+                      Text(pinChat!.time),
+                    ],
+                  ),
+                ],
+              )
+            : const SizedBox.shrink(),
       ),
     );
   }
@@ -296,117 +350,135 @@ class _GroupChatPageState extends State<GroupChatPage> {
       ChatMessages chatMessages = ChatMessages.fromDocument(documentSnapshot);
       if (chatMessages.idFrom == widget.currentUserId) {
         // right side (my message)
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                chatMessages.type == MessageType.text
-                    ? messageBubble(
-                        chatContent: chatMessages.content,
-                        color: Colors.lightBlue,
-                        textColor: Colors.white,
-                        margin: const EdgeInsets.only(right: 10),
-                      )
-                    : chatMessages.type == MessageType.image
-                        ? Container(
-                            margin: const EdgeInsets.only(right: 10, top: 10),
-                            child: chatImage(
-                                imageSrc: chatMessages.content, onTap: () {}),
-                          )
-                        : const SizedBox.shrink(),
-                isMessageSent(index)
-                    ? Container(
-                        clipBehavior: Clip.hardEdge,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
+        return InkWell(
+          onLongPress: () => pinMessage(chatMessages, index),
+          onDoubleTap: () => unsendMessage(chatMessages),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  chatMessages.type == MessageType.text
+                      ? chatMessages.content != 'Bạn đã thu hồi một tin nhắn'
+                          ? messageBubble(
+                              chatContent: chatMessages.content,
+                              color: Colors.lightBlue,
+                              textColor: Colors.white,
+                              margin:
+                                  const EdgeInsets.only(right: 10, bottom: 5),
+                            )
+                          : messageBubble(
+                              chatContent: chatMessages.content,
+                              color: Colors.white70,
+                              textColor: Colors.black54,
+                              margin:
+                                  const EdgeInsets.only(right: 10, bottom: 5),
+                            )
+                      : chatMessages.type == MessageType.image
+                          ? Container(
+                              margin: const EdgeInsets.only(right: 10, top: 10),
+                              child: chatImage(
+                                  imageSrc: chatMessages.content, onTap: () {}),
+                            )
+                          : const SizedBox.shrink(),
+                  isMessageSent(index)
+                      ? Container(
+                          clipBehavior: Clip.hardEdge,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.account_circle,
+                            size: 35,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Container(
+                          width: 35,
                         ),
-                        child: const Icon(
-                          Icons.account_circle,
-                          size: 35,
-                          color: Colors.grey,
+                ],
+              ),
+              isMessageSent(index)
+                  ? Container(
+                      margin:
+                          const EdgeInsets.only(right: 50, top: 6, bottom: 8),
+                      child: Text(
+                        DateFormat('dd MMM yyyy, hh:mm a').format(
+                          DateTime.fromMillisecondsSinceEpoch(
+                            int.parse(chatMessages.timestamp),
+                          ),
                         ),
-                      )
-                    : Container(
-                        width: 35,
+                        style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic),
                       ),
-              ],
-            ),
-            isMessageSent(index)
-                ? Container(
-                    margin: const EdgeInsets.only(right: 50, top: 6, bottom: 8),
-                    child: Text(
-                      DateFormat('dd MMM yyyy, hh:mm a').format(
-                        DateTime.fromMillisecondsSinceEpoch(
-                          int.parse(chatMessages.timestamp),
-                        ),
-                      ),
-                      style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ],
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          ),
         );
       } else {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                isMessageReceived(index)
-                    // left side (received message)
-                    ? Container(
-                        clipBehavior: Clip.hardEdge,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
+        return InkWell(
+          onLongPress: () => pinMessage(chatMessages, index),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  isMessageReceived(index)
+                      // left side (received message)
+                      ? Container(
+                          clipBehavior: Clip.hardEdge,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.account_circle,
+                            size: 35,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Container(
+                          width: 35,
                         ),
-                        child: const Icon(
-                          Icons.account_circle,
-                          size: 35,
-                          color: Colors.grey,
+                  chatMessages.type == MessageType.text
+                      ? messageBubble(
+                          color: Colors.blue,
+                          textColor: Colors.white,
+                          chatContent: chatMessages.content,
+                          margin: const EdgeInsets.only(left: 10),
+                        )
+                      : chatMessages.type == MessageType.image
+                          ? Container(
+                              margin: const EdgeInsets.only(left: 10, top: 10),
+                              child: chatImage(
+                                  imageSrc: chatMessages.content, onTap: () {}),
+                            )
+                          : const SizedBox.shrink(),
+                ],
+              ),
+              isMessageReceived(index)
+                  ? Container(
+                      margin:
+                          const EdgeInsets.only(left: 50, top: 6, bottom: 8),
+                      child: Text(
+                        DateFormat('dd MMM yyyy, hh:mm a').format(
+                          DateTime.fromMillisecondsSinceEpoch(
+                            int.parse(chatMessages.timestamp),
+                          ),
                         ),
-                      )
-                    : Container(
-                        width: 35,
+                        style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic),
                       ),
-                chatMessages.type == MessageType.text
-                    ? messageBubble(
-                        color: Colors.blue,
-                        textColor: Colors.white,
-                        chatContent: chatMessages.content,
-                        margin: const EdgeInsets.only(left: 10),
-                      )
-                    : chatMessages.type == MessageType.image
-                        ? Container(
-                            margin: const EdgeInsets.only(left: 10, top: 10),
-                            child: chatImage(
-                                imageSrc: chatMessages.content, onTap: () {}),
-                          )
-                        : const SizedBox.shrink(),
-              ],
-            ),
-            isMessageReceived(index)
-                ? Container(
-                    margin: const EdgeInsets.only(left: 50, top: 6, bottom: 8),
-                    child: Text(
-                      DateFormat('dd MMM yyyy, hh:mm a').format(
-                        DateTime.fromMillisecondsSinceEpoch(
-                          int.parse(chatMessages.timestamp),
-                        ),
-                      ),
-                      style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ],
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          ),
         );
       }
     } else {
@@ -416,33 +488,59 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   Widget buildListMessage() {
     return Flexible(
-        child: StreamBuilder<QuerySnapshot>(
-            stream: groupChatProvider.getChatMessage(
-                widget.groupData.groupId, _limit),
-            builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasData) {
-                listMessages = snapshot.data!.docs;
-                if (listMessages.isNotEmpty) {
-                  return ListView.builder(
-                      padding: const EdgeInsets.all(10),
-                      itemCount: snapshot.data?.docs.length,
-                      reverse: true,
-                      controller: scrollController,
-                      itemBuilder: (context, index) =>
-                          buildItem(index, snapshot.data?.docs[index]));
-                } else {
-                  return const Center(
-                    child: Text('No messages...'),
-                  );
-                }
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.blue,
-                  ),
-                );
-              }
-            }));
+      child: StreamBuilder<QuerySnapshot>(
+        stream:
+            groupChatProvider.getChatMessage(widget.groupData.groupId, _limit),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasData) {
+            listMessages = snapshot.data!.docs;
+            if (listMessages.isNotEmpty) {
+              return ListView.builder(
+                  padding: const EdgeInsets.all(10),
+                  itemCount: snapshot.data?.docs.length,
+                  reverse: true,
+                  controller: scrollController,
+                  itemBuilder: (context, index) =>
+                      buildItem(index, snapshot.data?.docs[index]));
+            } else {
+              return const Center(
+                child: Text('No messages...'),
+              );
+            }
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Colors.blue,
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  void pinMessage(ChatMessages chatMessages, int index) {
+    String time = DateFormat('hh:mm a').format(
+      DateTime.fromMillisecondsSinceEpoch(
+        int.parse(chatMessages.timestamp),
+      ),
+    );
+    String? user =
+        profileProvider.getPrefs(FirestoreConstants.displayName) ?? "";
+    setState(() {
+      isPin = true;
+      pinChat =
+          PinChat(id: index, msg: chatMessages.content, user: user, time: time);
+    });
+    ChatMessages messagesUpdate = chatMessages.copyWith(isPin: true);
+    groupChatProvider.updateChatMessage(
+        widget.groupData.groupId, messagesUpdate);
+  }
+
+  void unsendMessage(ChatMessages chatMessages) {
+    ChatMessages messagesUpdate =
+        chatMessages.copyWith(content: 'Bạn đã thu hồi một tin nhắn');
+    groupChatProvider.updateChatMessage(
+        widget.groupData.groupId, messagesUpdate);
   }
 }

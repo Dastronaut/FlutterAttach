@@ -56,6 +56,7 @@ Widget messageBubble(
     margin: margin,
     width: 200,
     decoration: BoxDecoration(
+      border: Border.all(color: Colors.black87),
       color: color,
       borderRadius: BorderRadius.circular(10),
     ),

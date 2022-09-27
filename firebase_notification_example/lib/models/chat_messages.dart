@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:firebase_notification_example/constants/firestore_constant.dart';
 
 class ChatMessages {
@@ -7,13 +8,16 @@ class ChatMessages {
   String timestamp;
   String content;
   int type;
+  bool isPin = false;
 
-  ChatMessages(
-      {required this.idFrom,
-      required this.idTo,
-      required this.timestamp,
-      required this.content,
-      required this.type});
+  ChatMessages({
+    required this.idFrom,
+    required this.idTo,
+    required this.timestamp,
+    required this.content,
+    required this.type,
+    required this.isPin,
+  });
 
   Map<String, dynamic> toJson() {
     return {
@@ -22,6 +26,7 @@ class ChatMessages {
       FirestoreConstants.timestamp: timestamp,
       FirestoreConstants.content: content,
       FirestoreConstants.type: type,
+      FirestoreConstants.isPin: isPin,
     };
   }
 
@@ -31,12 +36,32 @@ class ChatMessages {
     String timestamp = documentSnapshot.get(FirestoreConstants.timestamp);
     String content = documentSnapshot.get(FirestoreConstants.content);
     int type = documentSnapshot.get(FirestoreConstants.type);
+    bool isPin = documentSnapshot.get(FirestoreConstants.isPin);
 
     return ChatMessages(
         idFrom: idFrom,
         idTo: idTo,
         timestamp: timestamp,
         content: content,
-        type: type);
+        type: type,
+        isPin: isPin);
+  }
+
+  ChatMessages copyWith({
+    String? idFrom,
+    String? idTo,
+    String? timestamp,
+    String? content,
+    int? type,
+    bool? isPin,
+  }) {
+    return ChatMessages(
+      idFrom: idFrom ?? this.idFrom,
+      idTo: idTo ?? this.idTo,
+      timestamp: timestamp ?? this.timestamp,
+      content: content ?? this.content,
+      type: type ?? this.type,
+      isPin: isPin ?? this.isPin,
+    );
   }
 }

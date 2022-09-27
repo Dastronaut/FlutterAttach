@@ -41,7 +41,7 @@ class ChatProvider {
   }
 
   void sendChatMessage(String content, int type, String groupChatId,
-      String currentUserId, String peerId) {
+      String currentUserId, String peerId, bool isPin) {
     DocumentReference documentReference = firebaseFirestore
         .collection(FirestoreConstants.pathMessageCollection)
         .doc(groupChatId)
@@ -52,11 +52,22 @@ class ChatProvider {
         idTo: peerId,
         timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
         content: content,
-        type: type);
+        type: type,
+        isPin: isPin);
 
     FirebaseFirestore.instance.runTransaction((transaction) async {
       transaction.set(documentReference, chatMessages.toJson());
     });
+  }
+
+  Future<void> updateChatMessage(
+      String groupChatId, ChatMessages chatMessages) async {
+    await firebaseFirestore
+        .collection(FirestoreConstants.pathMessageCollection)
+        .doc(groupChatId)
+        .collection(groupChatId)
+        .doc(chatMessages.timestamp)
+        .update(chatMessages.toJson());
   }
 }
 

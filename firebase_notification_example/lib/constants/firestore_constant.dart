@@ -19,4 +19,5 @@ class FirestoreConstants {
   static const members = "members";
   static const groupId = "groupId";
   static const groupName = "groupName";
+  static const isPin = "isPin";
 }
