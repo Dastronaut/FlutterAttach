@@ -48,21 +48,81 @@ Widget chatImage({required String imageSrc, required Function onTap}) {
 
 Widget messageBubble(
     {required String chatContent,
+    required String replyContent,
     required EdgeInsetsGeometry? margin,
     Color? color,
-    Color? textColor}) {
-  return Container(
-    padding: const EdgeInsets.all(10),
-    margin: margin,
-    width: 200,
-    decoration: BoxDecoration(
-      border: Border.all(color: Colors.black87),
-      color: color,
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Text(
-      chatContent,
-      style: TextStyle(fontSize: 16, color: textColor),
-    ),
-  );
+    Color? textColor,
+    bool isCurrentUser = true}) {
+  return replyContent.isEmpty
+      ? Container(
+          constraints: const BoxConstraints(maxHeight: 200, maxWidth: 200),
+          padding: const EdgeInsets.all(10),
+          margin: margin,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            chatContent,
+            style: TextStyle(fontSize: 16, color: textColor),
+          ),
+        )
+      : ConstrainedBox(
+          constraints: const BoxConstraints(
+              maxHeight: 100, minHeight: 65, maxWidth: 200),
+          child: Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                margin: margin,
+                height: 50,
+                constraints: const BoxConstraints(maxWidth: 200),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 245, 245, 245),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  replyContent,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                      overflow: TextOverflow.ellipsis),
+                ),
+              ),
+              isCurrentUser
+                  ? Positioned(
+                      top: 30,
+                      right: 0,
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 200),
+                        padding: const EdgeInsets.all(5),
+                        margin: margin,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          chatContent,
+                          style: TextStyle(fontSize: 16, color: textColor),
+                        ),
+                      ),
+                    )
+                  : Positioned(
+                      top: 30,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        margin: margin,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          chatContent,
+                          style: TextStyle(fontSize: 16, color: textColor),
+                        ),
+                      ),
+                    ),
+            ],
+          ),
+        );
 }

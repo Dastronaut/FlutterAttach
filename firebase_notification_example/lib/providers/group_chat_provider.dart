@@ -46,8 +46,8 @@ class GroupChatProvider {
         .snapshots();
   }
 
-  void sendChatMessage(String content, int type, String groupChatId,
-      String currentUserId, bool isPin) {
+  void sendChatMessage(String content, String replyContent, int type,
+      String groupChatId, String currentUserId, bool isPin) {
     DocumentReference documentReference = firebaseFirestore
         .collection(FirestoreConstants.pathMessageCollection)
         .doc(groupChatId)
@@ -58,6 +58,7 @@ class GroupChatProvider {
         idTo: groupChatId,
         timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
         content: content,
+        replyContent: replyContent,
         type: type,
         isPin: isPin);
 

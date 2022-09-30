@@ -40,8 +40,8 @@ class ChatProvider {
         .snapshots();
   }
 
-  void sendChatMessage(String content, int type, String groupChatId,
-      String currentUserId, String peerId, bool isPin) {
+  void sendChatMessage(String content, String replyContent, int type,
+      String groupChatId, String currentUserId, String peerId, bool isPin) {
     DocumentReference documentReference = firebaseFirestore
         .collection(FirestoreConstants.pathMessageCollection)
         .doc(groupChatId)
@@ -52,6 +52,7 @@ class ChatProvider {
         idTo: peerId,
         timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
         content: content,
+        replyContent: replyContent,
         type: type,
         isPin: isPin);
 
@@ -68,6 +69,16 @@ class ChatProvider {
         .collection(groupChatId)
         .doc(chatMessages.timestamp)
         .update(chatMessages.toJson());
+  }
+
+  Future<void> deleteChatMessage(
+      String groupChatId, ChatMessages chatMessages) async {
+    await firebaseFirestore
+        .collection(FirestoreConstants.pathMessageCollection)
+        .doc(groupChatId)
+        .collection(groupChatId)
+        .doc(chatMessages.timestamp)
+        .delete();
   }
 }
 

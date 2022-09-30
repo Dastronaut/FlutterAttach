@@ -37,6 +37,8 @@ class GroupChatPage extends StatefulWidget {
 class _GroupChatPageState extends State<GroupChatPage> {
   List<QueryDocumentSnapshot> listMessages = [];
   bool isPin = false;
+  bool isReply = false;
+  String replyContent = '';
   PinChat? pinChat;
 
   int _limit = 20;
@@ -156,8 +158,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
   void onSendMessage(String content, int type) {
     if (content.trim().isNotEmpty) {
       textEditingController.clear();
-      groupChatProvider.sendChatMessage(
-          content, type, widget.groupData.groupId, widget.currentUserId, false);
+      groupChatProvider.sendChatMessage(content, replyContent, type,
+          widget.groupData.groupId, widget.currentUserId, false);
       scrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
@@ -363,6 +365,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                       ? chatMessages.content != 'Bạn đã thu hồi một tin nhắn'
                           ? messageBubble(
                               chatContent: chatMessages.content,
+                              replyContent: chatMessages.replyContent,
                               color: Colors.lightBlue,
                               textColor: Colors.white,
                               margin:
@@ -370,6 +373,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                             )
                           : messageBubble(
                               chatContent: chatMessages.content,
+                              replyContent: chatMessages.replyContent,
                               color: Colors.white70,
                               textColor: Colors.black54,
                               margin:
@@ -449,6 +453,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                           color: Colors.blue,
                           textColor: Colors.white,
                           chatContent: chatMessages.content,
+                          replyContent: chatMessages.replyContent,
                           margin: const EdgeInsets.only(left: 10),
                         )
                       : chatMessages.type == MessageType.image

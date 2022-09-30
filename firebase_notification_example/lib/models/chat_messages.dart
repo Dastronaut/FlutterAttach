@@ -7,6 +7,7 @@ class ChatMessages {
   String idTo;
   String timestamp;
   String content;
+  String replyContent;
   int type;
   bool isPin = false;
 
@@ -15,6 +16,7 @@ class ChatMessages {
     required this.idTo,
     required this.timestamp,
     required this.content,
+    required this.replyContent,
     required this.type,
     required this.isPin,
   });
@@ -25,6 +27,7 @@ class ChatMessages {
       FirestoreConstants.idTo: idTo,
       FirestoreConstants.timestamp: timestamp,
       FirestoreConstants.content: content,
+      FirestoreConstants.replyContent: replyContent,
       FirestoreConstants.type: type,
       FirestoreConstants.isPin: isPin,
     };
@@ -35,6 +38,7 @@ class ChatMessages {
     String idTo = documentSnapshot.get(FirestoreConstants.idTo);
     String timestamp = documentSnapshot.get(FirestoreConstants.timestamp);
     String content = documentSnapshot.get(FirestoreConstants.content);
+    String replyContent = documentSnapshot.get(FirestoreConstants.replyContent);
     int type = documentSnapshot.get(FirestoreConstants.type);
     bool isPin = documentSnapshot.get(FirestoreConstants.isPin);
 
@@ -43,6 +47,7 @@ class ChatMessages {
         idTo: idTo,
         timestamp: timestamp,
         content: content,
+        replyContent: replyContent,
         type: type,
         isPin: isPin);
   }
@@ -52,6 +57,7 @@ class ChatMessages {
     String? idTo,
     String? timestamp,
     String? content,
+    String? replyContent,
     int? type,
     bool? isPin,
   }) {
@@ -60,6 +66,7 @@ class ChatMessages {
       idTo: idTo ?? this.idTo,
       timestamp: timestamp ?? this.timestamp,
       content: content ?? this.content,
+      replyContent: replyContent ?? this.replyContent,
       type: type ?? this.type,
       isPin: isPin ?? this.isPin,
     );

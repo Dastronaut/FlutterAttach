@@ -38,6 +38,8 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   late String currentUserId;
   bool isPin = false;
+  bool isReply = false;
+  String replyContent = '';
   PinChat? pinChat;
 
   List<QueryDocumentSnapshot> listMessages = [];
@@ -169,10 +171,16 @@ class _ChatPageState extends State<ChatPage> {
   void onSendMessage(String content, int type) {
     if (content.trim().isNotEmpty) {
       textEditingController.clear();
-      chatProvider.sendChatMessage(
-          content, type, groupChatId, currentUserId, widget.peerId, false);
+      chatProvider.sendChatMessage(content, replyContent, type, groupChatId,
+          currentUserId, widget.peerId, false);
       scrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      if (isReply == true) {
+        setState(() {
+          isReply = false;
+          replyContent = '';
+        });
+      }
     } else {
       Fluttertoast.showToast(
           msg: 'Nothing to send', backgroundColor: Colors.grey);
@@ -242,6 +250,7 @@ class _ChatPageState extends State<ChatPage> {
     return Visibility(
       visible: isPin,
       child: Container(
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: Colors.green[700],
@@ -255,24 +264,34 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
         width: double.infinity,
-        height: 100,
+        constraints: const BoxConstraints(maxHeight: 100, minHeight: 40),
         child: pinChat != null
             ? Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(height: 50, child: Text(pinChat!.msg)),
-                      const Icon(Icons.push_pin_outlined),
+                      Text(
+                        pinChat!.msg,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isPin = false;
+                            pinChat = null;
+                          });
+                        },
+                        icon: const Icon(Icons.push_pin_outlined),
+                      ),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(
-                          height: 50,
-                          child: Text('Pinned by ${pinChat!.user}')),
-                      SizedBox(height: 50, child: Text(pinChat!.time)),
+                      Text('Pinned by ${pinChat!.user}'),
+                      Text(pinChat!.time),
                     ],
                   ),
                 ],
@@ -285,50 +304,116 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessageInput() {
     return SizedBox(
       width: double.infinity,
-      height: 50,
-      child: Row(
+      height: isReply ? 125 : 70,
+      child: Column(
         children: [
-          Container(
-            margin: const EdgeInsets.only(right: 4),
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: IconButton(
-              onPressed: getImage,
-              icon: const Icon(
-                Icons.camera_alt,
-                size: 28,
-              ),
-              color: Colors.white,
-            ),
+          isReply
+              ? const Divider(
+                  height: 1.5,
+                  color: Colors.black45,
+                )
+              : const SizedBox.shrink(),
+          isReply
+              ? SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: RichText(
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                                textAlign: TextAlign.left,
+                                text: TextSpan(
+                                    style: const TextStyle(
+                                        fontSize: 14, color: Colors.black),
+                                    children: [
+                                      const TextSpan(text: 'Đang trả lời '),
+                                      TextSpan(
+                                          text: widget.peerNickname,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                    ]),
+                              ),
+                            ),
+                            Text(
+                              replyContent,
+                              style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 14,
+                                  overflow: TextOverflow.ellipsis),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                          onPressed: () => setState(() {
+                                isReply = !isReply;
+                              }),
+                          icon: const Icon(Icons.close)),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+          const Divider(
+            height: 1.5,
+            color: Colors.black45,
           ),
-          Flexible(
-              child: TextField(
-            focusNode: focusNode,
-            textInputAction: TextInputAction.send,
-            keyboardType: TextInputType.text,
-            textCapitalization: TextCapitalization.sentences,
-            controller: textEditingController,
-            decoration:
-                kTextInputDecoration.copyWith(hintText: 'write here...'),
-            onSubmitted: (value) {
-              onSendMessage(textEditingController.text, MessageType.text);
-            },
-          )),
-          Container(
-            margin: const EdgeInsets.only(left: 4),
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: IconButton(
-              onPressed: () {
-                onSendMessage(textEditingController.text, MessageType.text);
-              },
-              icon: const Icon(Icons.send_rounded),
-              color: Colors.white,
-            ),
+          const SizedBox(
+            height: 5,
+          ),
+          Row(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: IconButton(
+                  onPressed: getImage,
+                  icon: const Icon(
+                    Icons.camera_alt,
+                    size: 28,
+                  ),
+                  color: Colors.white,
+                ),
+              ),
+              Flexible(
+                  child: TextField(
+                focusNode: focusNode,
+                textInputAction: TextInputAction.send,
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.sentences,
+                controller: textEditingController,
+                decoration:
+                    kTextInputDecoration.copyWith(hintText: 'write here...'),
+                onSubmitted: (value) {
+                  onSendMessage(textEditingController.text, MessageType.text);
+                },
+              )),
+              Container(
+                margin: const EdgeInsets.only(left: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    onSendMessage(textEditingController.text, MessageType.text);
+                  },
+                  icon: const Icon(Icons.send_rounded),
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -340,9 +425,45 @@ class _ChatPageState extends State<ChatPage> {
       ChatMessages chatMessages = ChatMessages.fromDocument(documentSnapshot);
       if (chatMessages.idFrom == currentUserId) {
         // right side (my message)
-        return InkWell(
-          onLongPress: () => pinMessage(chatMessages, index),
-          onDoubleTap: () => unsendMessage(chatMessages),
+        return GestureDetector(
+          onLongPress: () => showModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          unsendMessage(chatMessages);
+                        },
+                        child: const Text(
+                          'Thu hồi',
+                          style: TextStyle(color: Colors.red),
+                        )),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          deleteMessage(chatMessages);
+                        },
+                        child: const Text(
+                          'Xóa, gỡ bỏ',
+                          style: TextStyle(color: Colors.red),
+                        )),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          pinMessage(chatMessages, index);
+                        },
+                        child: const Text('Ghim tin nhắn')),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Sao chép')),
+                  ],
+                );
+              }),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -353,6 +474,7 @@ class _ChatPageState extends State<ChatPage> {
                       ? chatMessages.content != 'Bạn đã thu hồi một tin nhắn'
                           ? messageBubble(
                               chatContent: chatMessages.content,
+                              replyContent: chatMessages.replyContent,
                               color: Colors.lightBlue,
                               textColor: Colors.white,
                               margin:
@@ -360,6 +482,7 @@ class _ChatPageState extends State<ChatPage> {
                             )
                           : messageBubble(
                               chatContent: chatMessages.content,
+                              replyContent: chatMessages.replyContent,
                               color: Colors.white70,
                               textColor: Colors.black54,
                               margin:
@@ -437,8 +560,36 @@ class _ChatPageState extends State<ChatPage> {
           ),
         );
       } else {
-        return InkWell(
-          onLongPress: () => pinMessage(chatMessages, index),
+        return GestureDetector(
+          onLongPress: () => showModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          pinMessage(chatMessages, index);
+                        },
+                        child: const Text('Ghim tin nhắn')),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          replyContent = chatMessages.content;
+                          setState(() {
+                            isReply = !isReply;
+                          });
+                        },
+                        child: const Text('Trả lời')),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Sao chép')),
+                  ],
+                );
+              }),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -487,9 +638,11 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                   chatMessages.type == MessageType.text
                       ? messageBubble(
-                          color: Colors.blue,
-                          textColor: Colors.white,
+                          color: Colors.black12,
+                          textColor: Colors.black,
                           chatContent: chatMessages.content,
+                          replyContent: chatMessages.replyContent,
+                          isCurrentUser: false,
                           margin: const EdgeInsets.only(left: 10),
                         )
                       : chatMessages.type == MessageType.image
@@ -586,5 +739,9 @@ class _ChatPageState extends State<ChatPage> {
     ChatMessages messagesUpdate =
         chatMessages.copyWith(content: 'Bạn đã thu hồi một tin nhắn');
     chatProvider.updateChatMessage(groupChatId, messagesUpdate);
+  }
+
+  void deleteMessage(ChatMessages chatMessages) {
+    chatProvider.deleteChatMessage(groupChatId, chatMessages);
   }
 }
