@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:firebase_notification_example/constants/firestore_constant.dart';
 import 'package:firebase_notification_example/constants/text_field_constants.dart';
 import 'package:firebase_notification_example/models/chat_messages.dart';
-import 'package:firebase_notification_example/models/pin_chat.dart';
 import 'package:firebase_notification_example/pages/login_page.dart';
 import 'package:firebase_notification_example/providers/auth_provider.dart';
 import 'package:firebase_notification_example/providers/chat_provider.dart';
@@ -40,7 +39,7 @@ class _ChatPageState extends State<ChatPage> {
   bool isPin = false;
   bool isReply = false;
   String replyContent = '';
-  PinChat? pinChat;
+  ChatMessages? pinChatMessage;
 
   List<QueryDocumentSnapshot> listMessages = [];
 
@@ -247,6 +246,17 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildPinMessage() {
+    String? user =
+        profileProvider.getPrefs(FirestoreConstants.displayName) ?? "";
+    String time = '';
+    if (pinChatMessage != null) {
+      time = DateFormat('hh:mm a').format(
+        DateTime.fromMillisecondsSinceEpoch(
+          int.parse(pinChatMessage!.timestamp),
+        ),
+      );
+    }
+
     return Visibility(
       visible: isPin,
       child: Container(
@@ -265,23 +275,24 @@ class _ChatPageState extends State<ChatPage> {
         ),
         width: double.infinity,
         constraints: const BoxConstraints(maxHeight: 100, minHeight: 40),
-        child: pinChat != null
+        child: pinChatMessage != null
             ? Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        pinChat!.msg,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Container(
+                        constraints: const BoxConstraints(
+                            minHeight: 20, maxHeight: 100, maxWidth: 250),
+                        child: Text(
+                          pinChatMessage!.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       IconButton(
                         onPressed: () {
-                          setState(() {
-                            isPin = false;
-                            pinChat = null;
-                          });
+                          unpinMessage(pinChatMessage!);
                         },
                         icon: const Icon(Icons.push_pin_outlined),
                       ),
@@ -290,8 +301,8 @@ class _ChatPageState extends State<ChatPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Pinned by ${pinChat!.user}'),
-                      Text(pinChat!.time),
+                      Text('Pinned by $user'),
+                      Text(time),
                     ],
                   ),
                 ],
@@ -423,6 +434,9 @@ class _ChatPageState extends State<ChatPage> {
   Widget buildItem(int index, DocumentSnapshot? documentSnapshot) {
     if (documentSnapshot != null) {
       ChatMessages chatMessages = ChatMessages.fromDocument(documentSnapshot);
+      // if (chatMessages.isPin == true) {
+      //   pinMessage(chatMessages, index);
+      // }
       if (chatMessages.idFrom == currentUserId) {
         // right side (my message)
         return GestureDetector(
@@ -719,19 +733,20 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void pinMessage(ChatMessages chatMessages, int index) {
-    String time = DateFormat('hh:mm a').format(
-      DateTime.fromMillisecondsSinceEpoch(
-        int.parse(chatMessages.timestamp),
-      ),
-    );
-    String? user =
-        profileProvider.getPrefs(FirestoreConstants.displayName) ?? "";
+    pinChatMessage = chatMessages;
     setState(() {
       isPin = true;
-      pinChat =
-          PinChat(id: index, msg: chatMessages.content, user: user, time: time);
     });
     ChatMessages messagesUpdate = chatMessages.copyWith(isPin: true);
+    chatProvider.updateChatMessage(groupChatId, messagesUpdate);
+  }
+
+  void unpinMessage(ChatMessages chatMessages) {
+    setState(() {
+      isPin = false;
+      pinChatMessage = null;
+    });
+    ChatMessages messagesUpdate = chatMessages.copyWith(isPin: false);
     chatProvider.updateChatMessage(groupChatId, messagesUpdate);
   }
 
