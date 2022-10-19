@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:clipboard/clipboard.dart';
 import 'package:firebase_notification_example/constants/firestore_constant.dart';
 import 'package:firebase_notification_example/constants/text_field_constants.dart';
 import 'package:firebase_notification_example/models/chat_messages.dart';
@@ -434,9 +435,6 @@ class _ChatPageState extends State<ChatPage> {
   Widget buildItem(int index, DocumentSnapshot? documentSnapshot) {
     if (documentSnapshot != null) {
       ChatMessages chatMessages = ChatMessages.fromDocument(documentSnapshot);
-      // if (chatMessages.isPin == true) {
-      //   pinMessage(chatMessages, index);
-      // }
       if (chatMessages.idFrom == currentUserId) {
         // right side (my message)
         return GestureDetector(
@@ -473,6 +471,7 @@ class _ChatPageState extends State<ChatPage> {
                     TextButton(
                         onPressed: () {
                           Navigator.pop(context);
+                          FlutterClipboard.copy(chatMessages.content);
                         },
                         child: const Text('Sao chép')),
                   ],

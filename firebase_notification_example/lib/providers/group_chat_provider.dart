@@ -137,6 +137,16 @@ class GroupChatProvider {
         .doc(chatMessages.timestamp)
         .update(chatMessages.toJson());
   }
+
+  Future<void> deleteChatMessage(
+      String groupChatId, ChatMessages chatMessages) async {
+    await firebaseFirestore
+        .collection(FirestoreConstants.pathMessageCollection)
+        .doc(groupChatId)
+        .collection(groupChatId)
+        .doc(chatMessages.timestamp)
+        .delete();
+  }
 }
 
 class MessageType {

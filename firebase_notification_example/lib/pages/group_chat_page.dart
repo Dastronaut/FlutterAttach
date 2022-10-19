@@ -3,7 +3,6 @@ import 'package:firebase_notification_example/constants/firestore_constant.dart'
 import 'package:firebase_notification_example/constants/text_field_constants.dart';
 import 'package:firebase_notification_example/models/chat_messages.dart';
 import 'package:firebase_notification_example/models/group_profile.dart';
-import 'package:firebase_notification_example/models/pin_chat.dart';
 import 'package:firebase_notification_example/pages/home_page.dart';
 import 'package:firebase_notification_example/providers/auth_provider.dart';
 import 'package:firebase_notification_example/providers/group_chat_provider.dart';
@@ -39,7 +38,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   bool isPin = false;
   bool isReply = false;
   String replyContent = '';
-  PinChat? pinChat;
+  ChatMessages? pinChatMessage;
 
   int _limit = 20;
   final int _limitIncrement = 20;
@@ -248,6 +247,16 @@ class _GroupChatPageState extends State<GroupChatPage> {
   }
 
   Widget _buildPinMessage() {
+    String? user =
+        profileProvider.getPrefs(FirestoreConstants.displayName) ?? "";
+    String time = '';
+    if (pinChatMessage != null) {
+      time = DateFormat('hh:mm a').format(
+        DateTime.fromMillisecondsSinceEpoch(
+          int.parse(pinChatMessage!.timestamp),
+        ),
+      );
+    }
     return Visibility(
       visible: isPin,
       child: Container(
@@ -265,26 +274,34 @@ class _GroupChatPageState extends State<GroupChatPage> {
         ),
         width: double.infinity,
         height: 70,
-        child: pinChat != null
+        child: pinChatMessage != null
             ? Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(
-                        height: 50,
-                        child: Padding(
-                            padding: const EdgeInsets.only(left: 12, top: 12),
-                            child: Text(pinChat!.msg)),
+                      Container(
+                        constraints: const BoxConstraints(
+                            minHeight: 20, maxHeight: 100, maxWidth: 250),
+                        child: Text(
+                          pinChatMessage!.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      const Icon(Icons.push_pin_outlined),
+                      IconButton(
+                        onPressed: () {
+                          unpinMessage(pinChatMessage!);
+                        },
+                        icon: const Icon(Icons.push_pin_outlined),
+                      ),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Pinned by ${pinChat!.user}'),
-                      Text(pinChat!.time),
+                      Text('Pinned by $user'),
+                      Text(time),
                     ],
                   ),
                 ],
@@ -352,9 +369,45 @@ class _GroupChatPageState extends State<GroupChatPage> {
       ChatMessages chatMessages = ChatMessages.fromDocument(documentSnapshot);
       if (chatMessages.idFrom == widget.currentUserId) {
         // right side (my message)
-        return InkWell(
-          onLongPress: () => pinMessage(chatMessages, index),
-          onDoubleTap: () => unsendMessage(chatMessages),
+        return GestureDetector(
+          onLongPress: () => showModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          unsendMessage(chatMessages);
+                        },
+                        child: const Text(
+                          'Thu hồi',
+                          style: TextStyle(color: Colors.red),
+                        )),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          deleteMessage(chatMessages);
+                        },
+                        child: const Text(
+                          'Xóa, gỡ bỏ',
+                          style: TextStyle(color: Colors.red),
+                        )),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          pinMessage(chatMessages, index);
+                        },
+                        child: const Text('Ghim tin nhắn')),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Sao chép')),
+                  ],
+                );
+              }),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -424,8 +477,45 @@ class _GroupChatPageState extends State<GroupChatPage> {
           ),
         );
       } else {
-        return InkWell(
-          onLongPress: () => pinMessage(chatMessages, index),
+        return GestureDetector(
+          onLongPress: () => showModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          unsendMessage(chatMessages);
+                        },
+                        child: const Text(
+                          'Thu hồi',
+                          style: TextStyle(color: Colors.red),
+                        )),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          deleteMessage(chatMessages);
+                        },
+                        child: const Text(
+                          'Xóa, gỡ bỏ',
+                          style: TextStyle(color: Colors.red),
+                        )),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          pinMessage(chatMessages, index);
+                        },
+                        child: const Text('Ghim tin nhắn')),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Sao chép')),
+                  ],
+                );
+              }),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -525,19 +615,21 @@ class _GroupChatPageState extends State<GroupChatPage> {
   }
 
   void pinMessage(ChatMessages chatMessages, int index) {
-    String time = DateFormat('hh:mm a').format(
-      DateTime.fromMillisecondsSinceEpoch(
-        int.parse(chatMessages.timestamp),
-      ),
-    );
-    String? user =
-        profileProvider.getPrefs(FirestoreConstants.displayName) ?? "";
+    pinChatMessage = chatMessages;
     setState(() {
       isPin = true;
-      pinChat =
-          PinChat(id: index, msg: chatMessages.content, user: user, time: time);
     });
     ChatMessages messagesUpdate = chatMessages.copyWith(isPin: true);
+    groupChatProvider.updateChatMessage(
+        widget.groupData.groupId, messagesUpdate);
+  }
+
+  void unpinMessage(ChatMessages chatMessages) {
+    setState(() {
+      isPin = false;
+      pinChatMessage = null;
+    });
+    ChatMessages messagesUpdate = chatMessages.copyWith(isPin: false);
     groupChatProvider.updateChatMessage(
         widget.groupData.groupId, messagesUpdate);
   }
@@ -547,5 +639,9 @@ class _GroupChatPageState extends State<GroupChatPage> {
         chatMessages.copyWith(content: 'Bạn đã thu hồi một tin nhắn');
     groupChatProvider.updateChatMessage(
         widget.groupData.groupId, messagesUpdate);
+  }
+
+  void deleteMessage(ChatMessages chatMessages) {
+    groupChatProvider.deleteChatMessage(widget.groupData.groupId, chatMessages);
   }
 }
